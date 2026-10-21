@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Dashboard - Full App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { brand: { 500: '#6366f1', 600: '#4f46e5' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .glass { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.8); }
+        .dark .glass { background: rgba(15, 23, 42, 0.8); }
+        .animate-fade { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans antialiased transition-colors duration-300">
+
+    <!-- ================= HALAMAN LOGIN ================= -->
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 dark:bg-slate-950 p-4">
+        <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fade">
+            <div class="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/30">
+                <i data-lucide="hexagon" class="text-white w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-1">Selamat Datang</h2>
+            <p class="text-sm text-slate-500 mb-6">Silakan login ke akun Admin Anda.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500">Email</label>
+                    <input type="email" id="loginEmail" value="admin@wijaya.com" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500">Password</label>
+                    <input type="password" id="loginPassword" value="wijaya1108" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <div id="loginError" class="text-red-500 text-xs hidden">Email atau password salah!</div>
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-indigo-500/30">
+                    Masuk Dashboard
+                </button>
+                <p class="text-center text-xs text-slate-400 mt-4">Demo: admin@wijaya.com / wijaya1108</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= APLIKASI UTAMA ================= -->
+    <div id="appScreen" class="hidden flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300 absolute md:relative z-40 h-full -translate-x-full md:translate-x-0">
+            <div class="h-16 flex items-center gap-3 px-6 border-b border-slate-200 dark:border-slate-800">
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="hexagon" class="text-white w-4 h-4"></i>
+                </div>
+                <span class="font-bold text-lg">Nexus.</span>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl font-semibold text-sm">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-semibold text-sm transition">
+                    <i data-lucide="shopping-bag" class="w-5 h-5"></i> Pesanan
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-semibold text-sm transition">
+                    <i data-lucide="users" class="w-5 h-5"></i> Pelanggan
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-semibold text-sm transition">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Pengaturan
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="handleLogout()" class="flex items-center gap-3 px-4 py-3 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-semibold text-sm transition">
+                    <i data-lucide="log-out" class="w-5 h-5"></i> Keluar
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+            <!-- TOPBAR -->
+            <header class="h-16 glass border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-30">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-500"><i data-lucide="menu"></i></button>
+                
+                <div class="flex items-center gap-4 ml-auto">
+                    <button onclick="toggleTheme()" class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">AD</div>
+                        <span class="text-sm font-bold hidden sm:block">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- DASHBOARD BODY -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+                
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold">Overview Dashboard</h1>
+                        <p class="text-sm text-slate-500">Ringkasan data real-time dari database lokal.</p>
+                    </div>
+                    <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/30 flex items-center gap-2 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pesanan
+                    </button>
+                </div>
+
+                <!-- STAT CARDS (Dinamis dari Data Tabel) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <p class="text-sm text-slate-500 font-semibold mb-2">Total Pendapatan</p>
+                        <h2 class="text-3xl font-extrabold" id="statRevenue">$0</h2>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <p class="text-sm text-slate-500 font-semibold mb-2">Total Pesanan</p>
+                        <h2 class="text-3xl font-extrabold" id="statOrders">0</h2>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <p class="text-sm text-slate-500 font-semibold mb-2">Pesanan Selesai</p>
+                        <h2 class="text-3xl font-extrabold" id="statCompleted">0</h2>
+                    </div>
+                </div>
+
+                <!-- CHARTS -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h3 class="font-bold mb-4">Grafik Penjualan</h3>
+                        <canvas id="myChart" height="200"></canvas>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold">Tabel Pesanan</h3>
+                            <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari pesanan..." class="text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                                    <tr>
+                                        <th class="pb-3 font-semibold">Pelanggan</th>
+                                        <th class="pb-3 font-semibold">Produk</th>
+                                        <th class="pb-3 font-semibold">Harga</th>
+                                        <th class="pb-3 font-semibold">Status</th>
+                                        <th class="pb-3 text-right font-semibold">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <!-- Data dirender via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ================= MODAL CRUD ================= -->
+    <div id="crudModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl p-6 shadow-2xl animate-fade">
+            <h3 class="text-xl font-bold mb-4" id="modalTitle">Tambah Pesanan</h3>
+            <input type="hidden" id="editId">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500">Nama Pelanggan</label>
+                    <input type="text" id="inputName" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500">Nama Produk</label>
+                    <input type="text" id="inputProduct" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500">Harga ($)</label>
+                        <input type="number" id="inputPrice" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500">Status</label>
+                        <select id="inputStatus" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            <option value="Selesai">Selesai</option>
+                            <option value="Diproses">Diproses</option>
+                            <option value="Menunggu">Menunggu</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeModal()" class="flex-1 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl font-bold text-sm transition">Batal</button>
+                <button onclick="saveData()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/30 transition">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. INISIALISASI DATA (LOCAL STORAGE SEBAGAI DATABASE)
+        let orders = JSON.parse(localStorage.getItem('nexus_orders')) || [
+            { id: 1, name: "Budi Santoso", product: "MacBook Pro", price: 2499, status: "Selesai" },
+            { id: 2, name: "Siti Nurhaliza", product: "iPhone 15 Pro", price: 1199, status: "Diproses" },
+            { id: 3, name: "Agus Wijaya", product: "Sony Headphone", price: 399, status: "Menunggu" }
+        ];
+
+        // 2. LOGIKA AUTH (LOGIN)
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            
+            if(email === 'admin@wijaya.com' && pass === 'wijaya1108') {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('hidden');
+                localStorage.setItem('nexus_logged_in', 'true');
+                initApp();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('nexus_logged_in');
+            location.reload();
+        }
+
+        // Cek apakah sudah login sebelumnya
+        if(localStorage.getItem('nexus_logged_in') === 'true') {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+        }
+
+        // 3. FUNGSI RENDER TABEL & STATISTIK
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            let totalRevenue = 0;
+            let totalOrders = 0;
+            let totalCompleted = 0;
+
+            orders.forEach(order => {
+                // Hitung Statistik
+                totalRevenue += order.price;
+                totalOrders++;
+                if(order.status === 'Selesai') totalCompleted++;
+
+                // Filter Search
+                if(order.name.toLowerCase().includes(search) || order.product.toLowerCase().includes(search)) {
+                    let statusColor = order.status === 'Selesai' ? 'text-emerald-500 bg-emerald-500/10' : 
+                                     order.status === 'Diproses' ? 'text-blue-500 bg-blue-500/10' : 'text-amber-500 bg-amber-500/10';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                            <td class="py-3 font-semibold">${order.name}</td>
+                            <td class="py-3 text-slate-500">${order.product}</td>
+                            <td class="py-3 font-bold">$${order.price}</td>
+                            <td class="py-3"><span class="px-2 py-1 rounded-md text-[10px] font-bold ${statusColor}">${order.status}</span></td>
+                            <td class="py-3 text-right space-x-1">
+                                <button onclick="editData(${order.id})" class="p-1.5 text-slate-400 hover:text-indigo-500 transition"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="deleteData(${order.id})" class="p-1.5 text-slate-400 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // Update Stat Cards
+            document.getElementById('statRevenue').innerText = '$' + totalRevenue.toLocaleString();
+            document.getElementById('statOrders').innerText = totalOrders;
+            document.getElementById('statCompleted').innerText = totalCompleted;
+
+            // Simpan ke LocalStorage
+            localStorage.setItem('nexus_orders', JSON.stringify(orders));
+            
+            // Refresh Ikon Lucide
+            lucide.createIcons();
+            
+            // Update Chart
+            updateChart(totalRevenue, totalOrders);
+        }
+
+        // 4. FUNGSI CRUD (TAMBAH, EDIT, HAPUS)
+        function openModal() {
+            document.getElementById('modalTitle').innerText = 'Tambah Pesanan';
+            document.getElementById('editId').value = '';
+            document.getElementById('inputName').value = '';
+            document.getElementById('inputProduct').value = '';
+            document.getElementById('inputPrice').value = '';
+            document.getElementById('crudModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('crudModal').classList.add('hidden');
+        }
+
+        function saveData() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('inputName').value;
+            const product = document.getElementById('inputProduct').value;
+            const price = parseInt(document.getElementById('inputPrice').value);
+            const status = document.getElementById('inputStatus').value;
+
+            if(!name || !product || !price) return alert('Semua data harus diisi!');
+
+            if(id) {
+                // Edit
+                const index = orders.findIndex(o => o.id == id);
+                orders[index] = { id: parseInt(id), name, product, price, status };
+            } else {
+                // Tambah Baru
+                const newId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
+                orders.push({ id: newId, name, product, price, status });
+            }
+
+            closeModal();
+            renderTable();
+        }
+
+        function editData(id) {
+            const order = orders.find(o => o.id === id);
+            document.getElementById('modalTitle').innerText = 'Edit Pesanan';
+            document.getElementById('editId').value = order.id;
+            document.getElementById('inputName').value = order.name;
+            document.getElementById('inputProduct').value = order.product;
+            document.getElementById('inputPrice').value = order.price;
+            document.getElementById('inputStatus').value = order.status;
+            document.getElementById('crudModal').classList.remove('hidden');
+        }
+
+        function deleteData(id) {
+            if(confirm('Yakin ingin menghapus pesanan ini?')) {
+                orders = orders.filter(o => o.id !== id);
+                renderTable();
+            }
+        }
+
+        // 5. FUNGSI CHART.JS & UI
+        let chartInstance = null;
+
+        function updateChart(revenue, ordersCount) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            // Hancurkan chart lama jika ada
+            if(chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pendapatan ($)', 'Pesanan'],
+                    datasets: [{
+                        label: 'Data Real-time',
+                        data: [revenue, ordersCount],
+                        backgroundColor: ['#6366f1', '#8b5cf6'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        // 6. JALANKAN SAAT HALAMAN DIMUAT
+        function initApp() {
+            lucide.createIcons();
+            renderTable();
+        }
+
+        // Jalankan inisialisasi awal
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            if(localStorage.getItem('nexus_logged_in') === 'true') {
+                renderTable();
+            }
+        });
+    </script>
+</body>
+</html>
